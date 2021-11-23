@@ -32,12 +32,12 @@ from datetime import datetime
 
 def get_args():
     parser = argparse.ArgumentParser('MAE pre-training script', add_help=False)
-    parser.add_argument('--batch_size', default=64, type=int)
-    parser.add_argument('--epochs', default=300, type=int)
-    parser.add_argument('--save_ckpt_freq', default=20, type=int)
+    parser.add_argument('--batch_size', default=256, type=int)
+    parser.add_argument('--epochs', default=1600, type=int)
+    parser.add_argument('--save_ckpt_freq', default=10, type=int)
 
     # Model parameters
-    parser.add_argument('--model', default='pretrain_mae_base_patch16_224', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='pretrain_mae_large_patch16_224', type=str, metavar='MODEL',
                         help='Name of model to train')
 
     parser.add_argument('--mask_ratio', default=0.75, type=float,
@@ -57,7 +57,7 @@ def get_args():
                         help='Optimizer (default: "adamw"')
     parser.add_argument('--opt_eps', default=1e-8, type=float, metavar='EPSILON',
                         help='Optimizer Epsilon (default: 1e-8)')
-    parser.add_argument('--opt_betas', default=None, type=float, nargs='+', metavar='BETA',
+    parser.add_argument('--opt_betas', default=(.9, .95), type=float, nargs='+', metavar='BETA',
                         help='Optimizer Betas (default: None, use opt default)')
     parser.add_argument('--clip_grad', type=float, default=None, metavar='NORM',
                         help='Clip gradient norm (default: None, no clipping)')
