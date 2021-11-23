@@ -95,6 +95,7 @@ class PretrainVisionTransformerEncoder(nn.Module):
         
         # cls_tokens = self.cls_token.expand(batch_size, -1, -1) 
         # x = torch.cat((cls_tokens, x), dim=1)
+        # TODO: perf optimization possible here
         x = x + self.pos_embed.type_as(x).to(x.device).clone().detach()
 
         B, _, C = x.shape
