@@ -25,6 +25,9 @@ from engine_for_pretraining import train_one_epoch
 from utils import NativeScalerWithGradNormCount as NativeScaler
 import utils
 import modeling_pretrain
+import wandb_lib
+import wandb
+from datetime import datetime
 
 
 def get_args():
@@ -172,6 +175,10 @@ def main(args):
     if global_rank == 0 and args.log_dir is not None:
         os.makedirs(args.log_dir, exist_ok=True)
         log_writer = utils.TensorboardLogger(log_dir=args.log_dir)
+
+        wandb_logger = wandb.init(
+            project="zack_mae",
+        )
     else:
         log_writer = None
 
@@ -245,6 +252,12 @@ def main(args):
 
         log_stats = {**{f'train_{k}': v for k, v in train_stats.items()},
                      'epoch': epoch, 'n_parameters': n_parameters}
+
+        if global_rank == 0:
+            # Wandb logging
+            print("doing wandb logging")
+            for k, v in train_stats.items():
+                wandb_lib.log_scalar(f"train_{k}", v, step=epoch * num_training_steps_per_epoch, freq=1)
 
         if args.output_dir and utils.is_main_process():
             if log_writer is not None:
