@@ -127,6 +127,9 @@ class DatasetFolder(VisionDataset):
         self.classes = classes
         self.class_to_idx = class_to_idx
         self.samples = samples
+
+        # # TODO: remove!!
+        # self.samples = samples[:3000]
         self.targets = [s[1] for s in samples]
 
     def _find_classes(self, dir: str) -> Tuple[List[str], Dict[str, int]]:

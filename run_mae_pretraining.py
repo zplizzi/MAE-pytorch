@@ -34,7 +34,7 @@ def get_args():
     parser = argparse.ArgumentParser('MAE pre-training script', add_help=False)
     parser.add_argument('--batch_size', default=256, type=int)
     parser.add_argument('--epochs', default=1600, type=int)
-    parser.add_argument('--save_ckpt_freq', default=10, type=int)
+    parser.add_argument('--save_ckpt_freq', default=20, type=int)
 
     # Model parameters
     parser.add_argument('--model', default='pretrain_mae_large_patch16_224', type=str, metavar='MODEL',
@@ -176,9 +176,8 @@ def main(args):
         os.makedirs(args.log_dir, exist_ok=True)
         log_writer = utils.TensorboardLogger(log_dir=args.log_dir)
 
-        wandb_logger = wandb.init(
-            project="zack_mae",
-        )
+    if global_rank == 0:
+        wandb.init(project="zack_mae")
     else:
         log_writer = None
 
@@ -258,6 +257,8 @@ def main(args):
             print("doing wandb logging")
             for k, v in train_stats.items():
                 wandb_lib.log_scalar(f"train_{k}", v, step=epoch * num_training_steps_per_epoch, freq=1)
+            wandb_lib.log_scalar("epoch", epoch, step=epoch * num_training_steps_per_epoch, freq=1)
+            wandb_lib.log_iteration_time(epoch * num_training_steps_per_epoch, total_batch_size, freq=1)
 
         if args.output_dir and utils.is_main_process():
             if log_writer is not None:

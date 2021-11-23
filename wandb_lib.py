@@ -148,26 +148,24 @@ def log_scalar(tag, value, step, freq=20):
     wandb.log({tag: value}, step=step)
 
 
-def log_iteration_time(trainer, batch_size, freq=10):
+def log_iteration_time(step, batch_size, freq=10):
     """Call this once per training iteration."""
-    if not trainer.is_global_zero:
-        return
     global last_time
     global last_step
-    if not check_log_interval(trainer.global_step, freq):
+    if not check_log_interval(step, freq):
         return
 
     if last_time is None:
         last_time = time.time()
-        last_step = trainer.global_step
+        last_step = step
     else:
-        if trainer.global_step == last_step:
+        if step == last_step:
             return
-        dt = (time.time() - last_time) / (trainer.global_step - last_step)
+        dt = (time.time() - last_time) / (step - last_step)
         last_time = time.time()
-        last_step = trainer.global_step
-        log_scalar(trainer, "timings/iterations-per-sec", 1 / dt, freq=1)
-        log_scalar(trainer, "timings/samples-per-sec", batch_size / dt, freq=1)
+        last_step = step
+        log_scalar("timings/iterations-per-sec", 1 / dt, step, freq=1)
+        log_scalar("timings/samples-per-sec", batch_size / dt, step, freq=1)
 
 
 def watch(model, freq=50):
