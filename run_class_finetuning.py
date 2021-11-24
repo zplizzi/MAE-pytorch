@@ -30,6 +30,8 @@ from utils import NativeScalerWithGradNormCount as NativeScaler
 import utils
 from scipy import interpolate
 import modeling_finetune
+import wandb_lib
+import wandb
 
 
 def get_args():
@@ -40,7 +42,7 @@ def get_args():
     parser.add_argument('--save_ckpt_freq', default=20, type=int)
 
     # Model parameters
-    parser.add_argument('--model', default='deit_base_patch16_224', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='vit_large_patch16_224', type=str, metavar='MODEL',
                         help='Name of model to train')
 
     parser.add_argument('--input_size', default=224, type=int,
@@ -64,7 +66,7 @@ def get_args():
                         help='Optimizer (default: "adamw"')
     parser.add_argument('--opt_eps', default=1e-8, type=float, metavar='EPSILON',
                         help='Optimizer Epsilon (default: 1e-8)')
-    parser.add_argument('--opt_betas', default=None, type=float, nargs='+', metavar='BETA',
+    parser.add_argument('--opt_betas', default=(.9, .999), type=float, nargs='+', metavar='BETA',
                         help='Optimizer Betas (default: None, use opt default)')
     parser.add_argument('--clip_grad', type=float, default=None, metavar='NORM',
                         help='Clip gradient norm (default: None, no clipping)')
@@ -253,6 +255,9 @@ def main(args, ds_init):
     else:
         log_writer = None
 
+    if global_rank == 0:
+        wandb.init(project="zack_mae")
+
     data_loader_train = torch.utils.data.DataLoader(
         dataset_train, sampler=sampler_train,
         batch_size=args.batch_size,
@@ -372,7 +377,7 @@ def main(args, ds_init):
     model_without_ddp = model
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
 
-    print("Model = %s" % str(model_without_ddp))
+    # print("Model = %s" % str(model_without_ddp))
     print('number of params:', n_parameters)
 
     total_batch_size = args.batch_size * args.update_freq * utils.get_world_size()
@@ -495,15 +500,23 @@ def main(args, ds_init):
                          'epoch': epoch,
                          'n_parameters': n_parameters}
 
+        if global_rank == 0:
+            # Wandb logging
+            print("doing wandb logging")
+            for k, v in log_stats.items():
+                wandb_lib.log_scalar(k, v, step=epoch * num_training_steps_per_epoch, freq=1)
+            # wandb_lib.log_scalar("epoch", epoch, step=epoch * num_training_steps_per_epoch, freq=1)
+            wandb_lib.log_iteration_time(epoch * num_training_steps_per_epoch, total_batch_size, freq=1)
+
         if args.output_dir and utils.is_main_process():
             if log_writer is not None:
                 log_writer.flush()
             with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
                 f.write(json.dumps(log_stats) + "\n")
 
-    total_time = time.time() - start_time
-    total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    print('Training time {}'.format(total_time_str))
+    # total_time = time.time() - start_time
+    # total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+    # print('Training time {}'.format(total_time_str))
 
 
 if __name__ == '__main__':

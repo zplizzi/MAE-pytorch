@@ -33,7 +33,7 @@ from datetime import datetime
 def get_args():
     parser = argparse.ArgumentParser('MAE pre-training script', add_help=False)
     parser.add_argument('--batch_size', default=256, type=int)
-    parser.add_argument('--epochs', default=1600, type=int)
+    parser.add_argument('--epochs', default=400, type=int)
     parser.add_argument('--save_ckpt_freq', default=20, type=int)
 
     # Model parameters
@@ -175,11 +175,11 @@ def main(args):
     if global_rank == 0 and args.log_dir is not None:
         os.makedirs(args.log_dir, exist_ok=True)
         log_writer = utils.TensorboardLogger(log_dir=args.log_dir)
+    else:
+        log_writer = None
 
     if global_rank == 0:
         wandb.init(project="zack_mae")
-    else:
-        log_writer = None
 
     data_loader_train = torch.utils.data.DataLoader(
         dataset_train, sampler=sampler_train,
@@ -266,9 +266,9 @@ def main(args):
             with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
                 f.write(json.dumps(log_stats) + "\n")
 
-    total_time = time.time() - start_time
-    total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    print('Training time {}'.format(total_time_str))
+    # total_time = time.time() - start_time
+    # total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+    # print('Training time {}'.format(total_time_str))
 
 
 if __name__ == '__main__':
