@@ -130,6 +130,8 @@ class DatasetFolder(VisionDataset):
 
         # # TODO: remove!!
         # self.samples = samples[:3000]
+        # print("zack")
+        # print(len(self.samples))
         self.targets = [s[1] for s in samples]
 
     def _find_classes(self, dir: str) -> Tuple[List[str], Dict[str, int]]:

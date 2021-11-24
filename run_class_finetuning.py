@@ -39,7 +39,7 @@ def get_args():
     parser.add_argument('--batch_size', default=64, type=int)
     parser.add_argument('--epochs', default=30, type=int)
     parser.add_argument('--update_freq', default=1, type=int)
-    parser.add_argument('--save_ckpt_freq', default=20, type=int)
+    parser.add_argument('--save_ckpt_freq', default=10, type=int)
 
     # Model parameters
     parser.add_argument('--model', default='vit_large_patch16_224', type=str, metavar='MODEL',
