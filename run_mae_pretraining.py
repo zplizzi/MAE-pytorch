@@ -29,6 +29,8 @@ import wandb_lib
 import wandb
 from datetime import datetime
 
+import torchvision
+torchvision.set_image_backend('accimage')
 
 def get_args():
     parser = argparse.ArgumentParser('MAE pre-training script', add_help=False)

@@ -33,6 +33,8 @@ import modeling_finetune
 import wandb_lib
 import wandb
 
+import torchvision
+torchvision.set_image_backend('accimage')
 
 def get_args():
     parser = argparse.ArgumentParser('MAE fine-tuning and evaluation script for image classification', add_help=False)

@@ -149,6 +149,14 @@ class DatasetFolder(VisionDataset):
         """
         classes = [d.name for d in os.scandir(dir) if d.is_dir()]
         classes.sort()
+
+        # TODO: remove!!
+        # TODO: would be better to use a deterministic random sample,
+        # with selected classes pinned to a file or something.
+        # Sorting and picking the first 100 may not be random, may have all dogs or something
+        classes = classes[:100]
+        print("using 100-class subset of imagenet!")
+
         class_to_idx = {cls_name: i for i, cls_name in enumerate(classes)}
         return classes, class_to_idx
 
