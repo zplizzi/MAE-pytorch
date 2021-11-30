@@ -27,7 +27,6 @@ import utils
 import modeling_pretrain
 import wandb_lib
 import wandb
-from datetime import datetime
 
 import torchvision
 torchvision.set_image_backend('accimage')
@@ -268,9 +267,9 @@ def main(args):
             with open(os.path.join(args.output_dir, "log.txt"), mode="a", encoding="utf-8") as f:
                 f.write(json.dumps(log_stats) + "\n")
 
-    # total_time = time.time() - start_time
-    # total_time_str = str(datetime.timedelta(seconds=int(total_time)))
-    # print('Training time {}'.format(total_time_str))
+    total_time = time.time() - start_time
+    total_time_str = str(datetime.timedelta(seconds=int(total_time)))
+    print('Training time {}'.format(total_time_str))
 
 
 if __name__ == '__main__':

@@ -9,6 +9,7 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import copy
 
 from functools import partial
 
@@ -42,13 +43,7 @@ class PretrainVisionTransformerEncoder(nn.Module):
             img_size=img_size, patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim)
         num_patches = self.patch_embed.num_patches
 
-        # TODO: Add the cls token
-        # self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
-        if use_learnable_pos_emb:
-            self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dim))
-        else:
-            # sine-cosine positional embeddings 
-            self.pos_embed = get_sinusoid_encoding_table(num_patches, embed_dim)
+        self.pos_embed = get_sinusoid_encoding_table(num_patches, embed_dim)
 
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]  # stochastic depth decay rule
         self.blocks = nn.ModuleList([
@@ -57,13 +52,9 @@ class PretrainVisionTransformerEncoder(nn.Module):
                 drop=drop_rate, attn_drop=attn_drop_rate, drop_path=dpr[i], norm_layer=norm_layer,
                 init_values=init_values)
             for i in range(depth)])
-        self.norm =  norm_layer(embed_dim)
+        self.norm = norm_layer(embed_dim)
         self.head = nn.Linear(embed_dim, num_classes) if num_classes > 0 else nn.Identity()
 
-        if use_learnable_pos_emb:
-            trunc_normal_(self.pos_embed, std=.02)
-
-        # trunc_normal_(self.cls_token, std=.02)
         self.apply(self._init_weights)
 
 
@@ -83,18 +74,9 @@ class PretrainVisionTransformerEncoder(nn.Module):
     def no_weight_decay(self):
         return {'pos_embed', 'cls_token'}
 
-    def get_classifier(self):
-        return self.head
-
-    def reset_classifier(self, num_classes, global_pool=''):
-        self.num_classes = num_classes
-        self.head = nn.Linear(self.embed_dim, num_classes) if num_classes > 0 else nn.Identity()
-
     def forward_features(self, x, mask):
         x = self.patch_embed(x)
         
-        # cls_tokens = self.cls_token.expand(batch_size, -1, -1) 
-        # x = torch.cat((cls_tokens, x), dim=1)
         # TODO: perf optimization possible here
         x = x + self.pos_embed.type_as(x).to(x.device).clone().detach()
 
@@ -111,6 +93,7 @@ class PretrainVisionTransformerEncoder(nn.Module):
         x = self.forward_features(x, mask)
         x = self.head(x)
         return x
+
 
 class PretrainVisionTransformerDecoder(nn.Module):
     """ Vision Transformer with support for patch or hybrid CNN input stage
