@@ -276,6 +276,33 @@ class PretrainVisionTransformer(nn.Module):
 
         return x
 
+
+@register_model
+def pretrain_mae_small_patch4_64(pretrained=False, **kwargs):
+    model = PretrainVisionTransformer(
+        img_size=64,
+        patch_size=4,
+        encoder_embed_dim=384,
+        encoder_depth=12,
+        encoder_num_heads=6,
+        encoder_num_classes=0,
+        decoder_num_classes=48, # this is the number of pixels
+        decoder_embed_dim=192,
+        decoder_depth=4,
+        decoder_num_heads=3,
+        mlp_ratio=4,
+        qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6),
+        **kwargs)
+    model.default_cfg = _cfg()
+    if pretrained:
+        checkpoint = torch.load(
+            kwargs["init_ckpt"], map_location="cpu"
+        )
+        model.load_state_dict(checkpoint["model"])
+    return model
+
+
 @register_model
 def pretrain_mae_small_patch16_224(pretrained=False, **kwargs):
     model = PretrainVisionTransformer(

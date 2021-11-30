@@ -114,7 +114,9 @@ class DatasetFolder(VisionDataset):
         super(DatasetFolder, self).__init__(root, transform=transform,
                                             target_transform=target_transform)
         classes, class_to_idx = self._find_classes(self.root)
+        print(f"found {len(class_to_idx)} classes")
         samples = make_dataset(self.root, class_to_idx, extensions, is_valid_file)
+        print(f"found {len(samples)} samples")
         if len(samples) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.root)
             if extensions is not None:

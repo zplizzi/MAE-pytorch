@@ -72,10 +72,17 @@ def build_dataset(is_train, args):
         dataset = datasets.CIFAR100(args.data_path, train=is_train, transform=transform)
         nb_classes = 100
     elif args.data_set == 'IMNET':
+        print("using IMNET dataset")
         root = os.path.join(args.data_path, 'train' if is_train else 'val')
-        dataset = datasets.ImageFolder(root, transform=transform)
-        nb_classes = 1000
+        # dataset = datasets.ImageFolder(root, transform=transform)
+        # TODO: idk if these dataset classes are functionally identical!
+        dataset = ImageFolder(root, transform=transform)
+        # TODO: fix
+        # nb_classes = 1000
+        nb_classes = 100
+        assert len(dataset.class_to_idx) == nb_classes
     elif args.data_set == "image_folder":
+        print("using image folder dataset")
         root = args.data_path if is_train else args.eval_data_path
         dataset = ImageFolder(root, transform=transform)
         nb_classes = args.nb_classes
