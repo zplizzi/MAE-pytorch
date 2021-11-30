@@ -227,7 +227,11 @@ class VisionTransformer(nn.Module):
             for i in range(depth)])
         self.norm = nn.Identity() if use_mean_pooling else norm_layer(embed_dim)
         self.fc_norm = norm_layer(embed_dim) if use_mean_pooling else None
+
         self.head = nn.Linear(embed_dim, num_classes) if num_classes > 0 else nn.Identity()
+        # self.head1 = nn.Linear(embed_dim, embed_dim)
+        # self.head2 = nn.Linear(embed_dim, embed_dim)
+        # self.head3 = nn.Linear(embed_dim, num_classes)
 
         if use_learnable_pos_emb:
             trunc_normal_(self.pos_embed, std=.02)
@@ -285,7 +289,33 @@ class VisionTransformer(nn.Module):
     def forward(self, x):
         x = self.forward_features(x)
         x = self.head(x)
+
+        # with torch.no_grad():
+        #     x = self.forward_features(x)
+        # x = x.detach()
+        # x = self.head1(x)
+        # x = F.relu(x)
+        # x = self.head2(x)
+        # x = F.relu(x)
+        # x = self.head3(x)
         return x
+
+@register_model
+def vit_small_patch4_64(pretrained=False, **kwargs):
+    model = VisionTransformer(
+        patch_size=4, embed_dim=384, depth=12, num_heads=6, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), img_size=64, **kwargs)
+    model.default_cfg = _cfg()
+    return model
+
+@register_model
+def vit_base_patch4_64(pretrained=False, **kwargs):
+    model = VisionTransformer(
+        patch_size=4, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, qkv_bias=True,
+        norm_layer=partial(nn.LayerNorm, eps=1e-6), img_size=64, **kwargs)
+    model.default_cfg = _cfg()
+    return model
+
 
 @register_model
 def vit_small_patch16_224(pretrained=False, **kwargs):
