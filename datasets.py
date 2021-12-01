@@ -38,7 +38,7 @@ class DataAugmentationForMAE(object):
         )
 
     def __call__(self, image):
-        return self.transform(image), self.masked_position_generator()
+        return self.transform(image)#, self.masked_position_generator()
 
     def __repr__(self):
         repr = "(DataAugmentationForBEiT,\n"
@@ -55,40 +55,37 @@ def build_pretraining_dataset(args):
 
 
 def build_dataset(is_train, args):
-    transform = build_transform(is_train, args)
+    # transform = build_transform(is_train, args)
+    mean = IMAGENET_DEFAULT_MEAN
+    std = IMAGENET_DEFAULT_STD
+    transform = transforms.Compose([
+        transforms.RandomResizedCrop(args.input_size),
+        transforms.ToTensor(),
+        transforms.Normalize(
+            mean=torch.tensor(mean),
+            std=torch.tensor(std))
+    ])
+    # transform = DataAugmentationForMAE(args)
 
-    print("Transform = ")
-    if isinstance(transform, tuple):
-        for trans in transform:
-            print(" - - - - - - - - - - ")
-            for t in trans.transforms:
-                print(t)
-    else:
-        for t in transform.transforms:
-            print(t)
-    print("---------------------------")
+    # print("Transform = ")
+    # if isinstance(transform, tuple):
+    #     for trans in transform:
+    #         print(" - - - - - - - - - - ")
+    #         for t in trans.transforms:
+    #             print(t)
+    # else:
+    #     for t in transform.transforms:
+    #         print(t)
+    # print("---------------------------")
 
-    if args.data_set == 'CIFAR':
-        dataset = datasets.CIFAR100(args.data_path, train=is_train, transform=transform)
-        nb_classes = 100
-    elif args.data_set == 'IMNET':
-        print("using IMNET dataset")
-        root = os.path.join(args.data_path, 'train' if is_train else 'val')
-        # dataset = datasets.ImageFolder(root, transform=transform)
-        # TODO: idk if these dataset classes are functionally identical!
-        dataset = ImageFolder(root, transform=transform)
-        # TODO: fix
-        # nb_classes = 1000
-        nb_classes = 100
-        assert len(dataset.class_to_idx) == nb_classes
-    elif args.data_set == "image_folder":
-        print("using image folder dataset")
-        root = args.data_path if is_train else args.eval_data_path
-        dataset = ImageFolder(root, transform=transform)
-        nb_classes = args.nb_classes
-        assert len(dataset.class_to_idx) == nb_classes
-    else:
-        raise NotImplementedError()
+    root = os.path.join(args.data_path, 'train' if is_train else 'val')
+    # dataset = datasets.ImageFolder(root, transform=transform)
+    # TODO: idk if these dataset classes are functionally identical!
+    dataset = ImageFolder(root, transform=transform)
+    # TODO: fix
+    # nb_classes = 1000
+    nb_classes = 100
+    assert len(dataset.class_to_idx) == nb_classes
     assert nb_classes == args.nb_classes
     print("Number of the class = %d" % args.nb_classes)
 

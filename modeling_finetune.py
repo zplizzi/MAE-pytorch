@@ -228,20 +228,20 @@ class VisionTransformer(nn.Module):
         self.norm = nn.Identity() if use_mean_pooling else norm_layer(embed_dim)
         self.fc_norm = norm_layer(embed_dim) if use_mean_pooling else None
 
-        self.head = nn.Linear(embed_dim, num_classes) if num_classes > 0 else nn.Identity()
-        # self.head1 = nn.Linear(embed_dim, embed_dim)
-        # self.head2 = nn.Linear(embed_dim, embed_dim)
-        # self.head3 = nn.Linear(embed_dim, num_classes)
+        # self.head = nn.Linear(embed_dim, num_classes) if num_classes > 0 else nn.Identity()
+        self.head1 = nn.Linear(embed_dim, embed_dim)
+        self.head2 = nn.Linear(embed_dim, embed_dim)
+        self.head3 = nn.Linear(embed_dim, num_classes)
 
         if use_learnable_pos_emb:
             trunc_normal_(self.pos_embed, std=.02)
 
         # trunc_normal_(self.cls_token, std=.02)
-        trunc_normal_(self.head.weight, std=.02)
+        # trunc_normal_(self.head.weight, std=.02)
         self.apply(self._init_weights)
 
-        self.head.weight.data.mul_(init_scale)
-        self.head.bias.data.mul_(init_scale)
+        # self.head.weight.data.mul_(init_scale)
+        # self.head.bias.data.mul_(init_scale)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -287,17 +287,17 @@ class VisionTransformer(nn.Module):
             return x[:, 0]
 
     def forward(self, x):
-        x = self.forward_features(x)
-        x = self.head(x)
+        # x = self.forward_features(x)
+        # x = self.head(x)
 
-        # with torch.no_grad():
-        #     x = self.forward_features(x)
-        # x = x.detach()
-        # x = self.head1(x)
-        # x = F.relu(x)
-        # x = self.head2(x)
-        # x = F.relu(x)
-        # x = self.head3(x)
+        with torch.no_grad():
+            x = self.forward_features(x)
+        x = x.detach()
+        x = self.head1(x)
+        x = F.relu(x)
+        x = self.head2(x)
+        x = F.relu(x)
+        x = self.head3(x)
         return x
 
 @register_model
